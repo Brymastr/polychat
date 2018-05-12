@@ -1,0 +1,19 @@
+{
+  "name": "polychat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "get-cursor-position": "^1.0.5",
+    "readline": "^1.3.0",
+    "term-size": "^1.2.0",
+    "terminal-kit": "^1.15.1"
+  }
+}
