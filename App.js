@@ -8,6 +8,8 @@ class App {
   constructor() {
     this.eventEmitter = new EventEmitter();
 
+    this.checkMessagesInterval;
+
     this.eventEmitter.on('PlatformSelected', async platform => {
       this.clear();
 
@@ -25,11 +27,22 @@ class App {
       this.clear();
       
       const client = this.clients.find(x => x.id === result.client_id);
+      const chat = client.chats.find(x => x.id === result.chat_id);
 
-      await client.showMessages(result.chat_id);
+      await client.refreshMessages(chat)
+      await client.showMessages(chat);
+      let numberOfMessages = chat.messages.length;
+
+      this.checkMessagesInterval = setInterval(async () => {
+        numberOfMessages = chat.messages.length;
+        await client.refreshMessages(chat);
+
+        if(chat.messages.length > numberOfMessages)
+          await client.showMessages(chat);
+      }, 1000);
+
+
       
-      process.exit(0);
-
     });
 
     this.clients = [];

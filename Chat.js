@@ -9,6 +9,7 @@ class Chat {
     this.user = loggedInUser; // So we know which messages to display on the right
     this.title = title;
     this.messages = [];
+    this.messageIds = new Set();
     this.usersInChat = [];
 
     this.chatView = new ChatView();
@@ -28,14 +29,20 @@ class Chat {
     }
     */
     for(const m of rawMessages) {
+
+      const exists = this.messageIds.has(m.id);
+      if(exists) continue;
+      
+      this.messageIds.add(m.id);
+
       this.messages.push({
         user_id: m.from_id,
-        date: m.date,
+        date: new Date(m.date * 1000),
         message: m.message.replace(/\n/g, ' '),
       });
     }
 
-    this.messages.sort((a, b) => a >= b ? 1 : -1);
+    this.messages.sort((a, b) => a.date >= b.date ? 1 : -1);
   }
 
   setUsersInChat(rawUsers) {

@@ -36,6 +36,8 @@ class TelegramClient extends Client {
 
     this.sessionStorage = fs.readFileSync('./telegram/storage.json', 'utf8');
 
+    this.selectedChat;
+
     this.config();
   }
 
@@ -80,19 +82,18 @@ class TelegramClient extends Client {
     return title;
   }
 
-  async showMessages(chatId) {
-    // get the correct chat based on chat_id
-    const chat = this.chats.find(x => x.id === chatId);
-    // get messages for chat
+  async showMessages(chat) {
+    // call showMessages on chat
+    chat.showMessages();
+  }
+
+  async refreshMessages(chat) {
+    // TODO: Don't look for the right chat each time. Instead, return the full chat object to ChatSelected event
     const { id, access_hash, type } = chat.to;
     const chatHistory = await this.getHistory(id, access_hash, type);
 
     chat.appendMessages(chatHistory.messages);
     chat.setUsersInChat(chatHistory.users);
-
-    // call showMessages on chat
-    chat.showMessages();
-    // start refreshing chats
   }
 
   isAuthenticated() {

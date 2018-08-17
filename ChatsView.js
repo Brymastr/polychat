@@ -39,11 +39,6 @@ class ChatsView extends BaseView {
       chat_id: answers.chats,
     });
   }
-
-  showMessages() {
-    console.log('ChatsView.showMessages');
-    console.log(this.chat);
-  }
 }
 
 module.exports = ChatsView;

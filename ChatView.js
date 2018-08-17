@@ -65,8 +65,9 @@ class ChatView {
   }
 
   draw(title, users, messages) {
-    this.write(title + '\n\n');
     const content = this.draftContent(users, messages);
+    this.clear();
+    this.write(title + '\n\n');
 
     this.write(content.join('\n\n'));
   }
@@ -79,7 +80,7 @@ class ChatView {
     return messages.map(x => {
       const user = users.find(y => y.id === x.user_id);
 
-      return `${this.color(user.name, 'bold')}    ${this.color(new Date(x.date).toLocaleString(), 'italic', 'dim')}\n${x.message}`;
+      return `${this.color(user.name, 'bold')}    ${this.color(x.date.toLocaleString(), 'italic', 'dim')}\n${x.message}`;
     });
   }
 
