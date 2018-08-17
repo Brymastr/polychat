@@ -250,7 +250,7 @@ class TelegramClient extends Client {
     peer[typeId] = peerId;
     return this.telegram('messages.getHistory', {
       peer,
-      limit: 10
+      limit: 50
     });
   }
 
