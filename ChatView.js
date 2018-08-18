@@ -8,15 +8,21 @@ const tty = require('tty');
 class ChatView {
 
   constructor(user, options) {
-
+    this.user = user;
   }
 
   draw(title, users, messages) {
+
     const content = this.draftContent(users, messages);
     this.clear();
     this.write(title + '\n\n');
 
     this.write(content.join('\n\n'));
+
+    this.rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
   }
 
   draftContent(users, messages) {

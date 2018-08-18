@@ -7,8 +7,24 @@ const chalk = require('chalk');
 class App {
   constructor() {
     this.eventEmitter = new EventEmitter();
-
+    this.platformsView = new PlatformsView(this.eventEmitter);
     this.checkMessagesInterval;
+    this.activeView;
+    this.clients = [];
+    this.selectedClient;
+    this.selectedChat;
+
+    process.stdin.on('keypress', (ch, key) => {
+      if(key.name === 'escape') {
+        if(this.activeView === 'all chats') {
+          this.eventEmitter.emit('EscapePressedInAllChats');
+        } else if(this.activeView === 'platforms') {          
+          this.eventEmitter.emit('EscapePressedInPlatforms');
+        } else if(this.activeView === 'single chat') {
+          this.eventEmitter.emit('EscapePressedInSingleChat');
+        }
+      }
+    });
 
     this.eventEmitter.on('PlatformSelected', async platform => {
       this.clear();
@@ -19,15 +35,21 @@ class App {
       }
 
       this.clients.push(client);
+      this.selectedClient = client;
+
+      this.activeView = 'all chats';
 
       client.selectChat();
     });
 
     this.eventEmitter.on('ChatSelected', async result => {
       this.clear();
+
+      this.activeView = 'single chat';
       
       const client = this.clients.find(x => x.id === result.client_id);
       const chat = client.chats.find(x => x.id === result.chat_id);
+      this.selectedChat = chat;
 
       await client.refreshMessages(chat)
       await client.showMessages(chat);
@@ -40,20 +62,34 @@ class App {
         if(chat.messages.length > numberOfMessages)
           await client.showMessages(chat);
       }, 1000);
-
-
       
     });
 
-    this.clients = [];
+    this.eventEmitter.on('EscapePressedInSingleChat', async () => {
+      clearInterval(this.checkMessagesInterval);
+      this.selectedChat.chatView.rl.close();
+      this.activeView = 'all chats';
+      this.clear();
+      this.selectedClient.selectChat();
+    });
+
+    this.eventEmitter.on('EscapePressedInAllChats', async () => {
+      this.clear();
+      this.selectPlatform();
+    });
+
+    this.eventEmitter.on('EscapePressedInPlatforms', async () => {
+      this.clear();
+      process.exit(0);
+    });
 
     this.selectPlatform();
   }
 
   async selectPlatform() {
-    const view = new PlatformsView(this.eventEmitter);
+    this.activeView = 'platforms';
 
-    await view.selectPlatform(this.clients.map(x => x.type));
+    await this.platformsView.selectPlatform(this.clients.map(x => x.type));
   }
 
   createClient(platform) {

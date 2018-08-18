@@ -20,10 +20,10 @@ class PlatformsView extends BaseView {
       message: 'Platforms',
       name: 'platforms',
       pageSize: this.platforms.length * 2,
-      choices: this.platforms.filter(x => !existingClients.includes(x.toLowerCase())).map(x => {
+      choices: this.platforms.map(x => {
         return {
           name: `${x}\n`,
-          value: x.toLowerCase()
+          value: x.toLowerCase(),
         };
       })
     }]);
