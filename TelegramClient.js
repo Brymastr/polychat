@@ -12,8 +12,8 @@ const API_ID = appConfig.api_id;
 const API_HASH = appConfig.api_hash;
 
 class TelegramClient extends Client {
-  constructor(eventEmitter) {
-    super(eventEmitter, 'telegram');
+  constructor(eventEmitter, terminal) {
+    super(eventEmitter, 'telegram', terminal);
     this.telegram = MTProto({
       server: {
         dev: false
@@ -60,7 +60,7 @@ class TelegramClient extends Client {
         type: peerType,
         id: dialogPeer.id,
         access_hash: dialogPeer.access_hash,
-      });
+      }, this.terminal, this.eventEmitter);
 
       chat.appendMessages(dialogsResponse.messages.filter(y => y.id === x.top_message));
       
@@ -149,19 +149,22 @@ class TelegramClient extends Client {
     fs.writeFileSync('./telegram/user.json', JSON.stringify(this.user));
   }
 
-  async sendMessage(message, peer) {
-    shortid.characters('0123456789');
+  async sendMessage(message, peerId, access_hash, peerType) {
+    const random_id = Math.floor(Math.random() * (9999999 - 1000000)) + 1000000;
+    const typeId = `${peerType}_id`;
+    const peer = {
+      _: `inputPeer${peerType.charAt(0).toUpperCase()}${peerType.substr(1)}`,
+      access_hash,
+    }
+
+    peer[typeId] = peerId;
+
+
     const response = await this.telegram('messages.sendMessage', {
-      peer: {
-        _: "inputPeerUser",
-        user_id: '111560744',
-        access_hash: '13807088105681716654',
-      },
-      random_id: shortid.generate(),
-      message,
+      peer, random_id, message
     });
 
-    console.log(response);
+    return response;
   }
 
   getDialogs() {

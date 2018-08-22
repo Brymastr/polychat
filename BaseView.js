@@ -59,12 +59,8 @@ class BaseView {
     // this.start();
   }
 
-  clear() {
-    this.write(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H');
-  }
-
   start() {
-    this.clear();
+    this.terminal.clear();
 
     const { rows, columns } = this.dimensions;
 
@@ -78,7 +74,7 @@ class BaseView {
   }
 
   redraw(oldRows, oldColumns) {
-    this.clear();
+    this.terminal.clear();
     const { rows, columns } = this.dimensions;
 
     readline.cursorTo(process.stdout, 0);

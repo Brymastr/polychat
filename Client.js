@@ -3,7 +3,8 @@ const ChatsView = require('./ChatsView');
 
 
 class Client {
-  constructor(eventEmitter, type) {
+  constructor(eventEmitter, type, terminal) {
+    this.terminal = terminal;
     this.type = type;
     this.id = uuid();
     this.eventEmitter = eventEmitter;

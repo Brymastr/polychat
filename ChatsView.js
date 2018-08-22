@@ -8,11 +8,9 @@ const BaseView = require('./BaseView');
 
 class ChatsView extends BaseView {
 
-  constructor(client_id, eventEmitter, chat) {
-    super();
-    this.eventEmitter = eventEmitter;
+  constructor(client_id, eventEmitter, chat, terminal) {
+    super(terminal, eventEmitter);
     this.client_id = client_id;
-
     this.chat = chat;
   }
 

@@ -3,7 +3,7 @@ const ChatView = require('./ChatView');
 
 
 class Chat {
-  constructor(loggedInUser, title, to) {
+  constructor(loggedInUser, title, to, terminal, eventEmitter) {
     this.id = uuid();
     this.to = to;
     this.user = loggedInUser; // So we know which messages to display on the right
@@ -11,10 +11,10 @@ class Chat {
     this.messages = [];
     this.messageIds = new Set();
     this.usersInChat = [];
+    this.terminal = terminal;
+    this.eventEmitter = eventEmitter;
 
-    this.chatView = new ChatView();
-    this.chatView.clear();
-    
+    this.chatView = new ChatView(this.user, this.terminal, this.eventEmitter);
   }
 
   appendMessages(rawMessages) {
@@ -70,6 +70,7 @@ class Chat {
 
   showMessages(messages = this.messages) {
     this.chatView.draw(this.usersInChat, messages);
+    this.chatView.drawInput();
   }
 }
 

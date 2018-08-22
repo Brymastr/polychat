@@ -1,29 +1,33 @@
 const readline = require('readline');
 const chalk = require('chalk');
-const termSize = require('term-size');
-const getCursorPosition = require('get-cursor-position');
-const tty = require('tty');
+const BaseView = require('./BaseView');
+const boxes = require('./boxes.json');
 
 
-class ChatView {
+class ChatView extends BaseView {
 
-  constructor(user, options) {
+  constructor(user, terminal, eventEmitter) {
+    super(terminal, eventEmitter);
     this.user = user;
+    this.terminal.clear();
   }
 
   start(title) {
-    this.rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
+    // this.rl = readline.createInterface({
+    //   input: process.stdin,
+    //   output: process.stdout,
+    // });
 
     this.write(title + '\n\n');
   }
 
   draw(users, messages) {
     const content = this.draftContent(users, messages);
-    this.write(content.join('\n\n'));
-    this.write('\n\n');
+    this.terminal.up(2);
+    this.terminal('\n');
+    this.terminal.eraseDisplayBelow();
+    this.terminal(content.join('\n\n\n'));
+    this.terminal('\n\n\n');
   }
 
   draftContent(users, messages) {
@@ -37,13 +41,20 @@ class ChatView {
       return `${this.color(user.name, 'bold')}    ${this.color(x.date.toLocaleString(), 'italic', 'dim')}\n${x.message}`;
     });
   }
-
-  clear() {
-    this.write(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H');
+  
+  drawInput() {
+    this.terminal(boxes['double-single'].horizontal.repeat(this.terminal.width));
+    this.terminal('\n>');
+    this.terminal.grabInput(true);
+    this.terminal.inputField({}, (err, result) => {
+      this.terminal.eraseLine();
+      this.eventEmitter.emit('MessageSubmitted', result);
+      this.terminal.grabInput(false);
+    });
   }
 
   // start() {
-  //   this.clear();
+  //   this.terminal.clear();
 
   //   const { rows, columns } = this.dimensions;
 
@@ -57,7 +68,7 @@ class ChatView {
   // }
 
   redraw(messages, oldRows, oldColumns) {
-    this.clear();
+    this.terminal.clear();
     const { rows, columns } = this.dimensions;
 
     readline.cursorTo(process.stdout, 0);

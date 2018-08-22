@@ -10,6 +10,8 @@ class App {
     this.terminal = require('terminal-kit').terminal;
     this.terminal.grabInput(true);
     this.terminal.fullscreen();
+    this.terminal.windowTitle('Polychat');
+
     this.eventEmitter = new EventEmitter();
     this.platformsView = new PlatformsView(this.terminal, this.eventEmitter);
     this.checkMessagesInterval;
@@ -19,6 +21,7 @@ class App {
     this.selectedChat;
 
     this.terminate = function() {
+      this.terminal.clear();
       this.terminal.grabInput(false);
       this.terminal.processExit(0);
     }
@@ -37,7 +40,8 @@ class App {
     });
 
     this.eventEmitter.on('PlatformSelected', async platform => {
-      this.clear();
+      this.terminal.clear();
+      this.terminal.windowTitle(platform)
 
       const client = this.createClient(platform);
       if(!client.isAuthenticated()) {
@@ -53,7 +57,7 @@ class App {
     });
 
     this.eventEmitter.on('ChatSelected', async result => {
-      this.clear();
+      this.terminal.clear();
 
       this.activeView = 'single chat';
       
@@ -79,20 +83,38 @@ class App {
 
     this.eventEmitter.on('EscapePressedInSingleChat', async () => {
       clearInterval(this.checkMessagesInterval);
-      this.selectedChat.chatView.rl.close();
+      this.terminal.grabInput(false);
       this.activeView = 'all chats';
-      this.clear();
+      this.terminal.clear();
       this.selectedClient.selectChat();
     });
 
     this.eventEmitter.on('EscapePressedInAllChats', async () => {
-      this.clear();
+      this.terminal.clear();
+      this.terminal.windowTitle('Polychat');
       this.selectPlatform();
     });
 
     this.eventEmitter.on('EscapePressedInPlatforms', async () => {
-      this.clear();
+      this.terminal.clear();
       this.terminate();
+    });
+
+    this.eventEmitter.on('MessageSubmitted', async text => {
+      const to = this.selectedChat.to;
+      const result = await this.selectedClient.sendMessage(text, to.id, to.access_hash, to.type);
+      // console.log(result.updates)
+      const messageResult = result.updates[1].message;
+
+      const message = {
+        user_id: messageResult.from_id,
+        date: new Date(messageResult.date * 1000),
+        message: messageResult.message,
+        id: messageResult.id,
+      };
+
+      // this.selectedChat.appendMessages([ message ]);
+      // this.selectedClient.showMessages(this.selectedChat, [ message ]);
     });
 
     this.selectPlatform();
@@ -109,7 +131,7 @@ class App {
 
     switch(platform) {
       case 'telegram':
-        client = new TelegramClient(this.eventEmitter);
+        client = new TelegramClient(this.eventEmitter, this.terminal);
         break;
       case 'slack':
         console.log('new slack client')
@@ -131,9 +153,6 @@ class App {
     process.stdout.write(chalk[color](text));
   }
 
-  clear() {
-    this.write(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H');
-  }
 }
 
 module.exports = App;
