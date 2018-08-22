@@ -11,18 +11,19 @@ class ChatView {
     this.user = user;
   }
 
-  draw(title, users, messages) {
-
-    const content = this.draftContent(users, messages);
-    this.clear();
-    this.write(title + '\n\n');
-
-    this.write(content.join('\n\n'));
-
+  start(title) {
     this.rl = readline.createInterface({
       input: process.stdin,
-      output: process.stdout
+      output: process.stdout,
     });
+
+    this.write(title + '\n\n');
+  }
+
+  draw(users, messages) {
+    const content = this.draftContent(users, messages);
+    this.write(content.join('\n\n'));
+    this.write('\n\n');
   }
 
   draftContent(users, messages) {
@@ -41,19 +42,19 @@ class ChatView {
     this.write(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H');
   }
 
-  start() {
-    this.clear();
+  // start() {
+  //   this.clear();
 
-    const { rows, columns } = this.dimensions;
+  //   const { rows, columns } = this.dimensions;
 
-    for(let i = 0; i < rows - 1; i++) {
-      this.write('\n');
-    }
+  //   for(let i = 0; i < rows - 1; i++) {
+  //     this.write('\n');
+  //   }
 
-    readline.cursorTo(process.stdout, 0, 0);
+  //   readline.cursorTo(process.stdout, 0, 0);
 
-    this.redraw();
-  }
+  //   this.redraw();
+  // }
 
   redraw(messages, oldRows, oldColumns) {
     this.clear();

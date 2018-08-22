@@ -3,32 +3,35 @@ const inquirer = require('inquirer');
 
 
 class PlatformsView extends BaseView {
-  constructor(eventEmitter) {
-    super();
-    this.eventEmitter = eventEmitter;
+  constructor(terminal, eventEmitter) {
+    super(terminal, eventEmitter);
     this.platforms = [
       'Telegram',
       'WhatsApp',
       'Messenger',
       'Slack',
     ];
+    // this.platforms.map(x => `\n${x}\n`);
   }
 
   async selectPlatform(existingClients) {
-    const answers = await inquirer.prompt([{
-      type: 'list',
-      message: 'Platforms',
-      name: 'platforms',
-      pageSize: this.platforms.length * 2,
-      choices: this.platforms.map(x => {
-        return {
-          name: `${x}\n`,
-          value: x.toLowerCase(),
-        };
-      })
-    }]);
+    // const answers = await inquirer.prompt([{
+    //   type: 'list',
+    //   message: 'Platforms',
+    //   name: 'platforms',
+    //   pageSize: this.platforms.length * 2,
+    //   choices: this.platforms.map(x => {
+    //     return {
+    //       name: `${x}\n`,
+    //       value: x.toLowerCase(),
+    //     };
+    //   })
+    // }]);
 
-    this.eventEmitter.emit('PlatformSelected', answers.platforms);
+    this.terminal.singleColumnMenu(this.platforms, (err, response) => {
+      this.eventEmitter.emit('PlatformSelected', response.selectedText.toLowerCase());
+    });
+
   }
 }
 

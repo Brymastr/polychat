@@ -4,18 +4,28 @@ const TelegramClient = require('./TelegramClient');
 const { EventEmitter } = require('events');
 const chalk = require('chalk');
 
+
 class App {
   constructor() {
+    this.terminal = require('terminal-kit').terminal;
+    this.terminal.grabInput(true);
+    this.terminal.fullscreen();
     this.eventEmitter = new EventEmitter();
-    this.platformsView = new PlatformsView(this.eventEmitter);
+    this.platformsView = new PlatformsView(this.terminal, this.eventEmitter);
     this.checkMessagesInterval;
     this.activeView;
     this.clients = [];
     this.selectedClient;
     this.selectedChat;
 
-    process.stdin.on('keypress', (ch, key) => {
-      if(key.name === 'escape') {
+    this.terminate = function() {
+      this.terminal.grabInput(false);
+      this.terminal.processExit(0);
+    }
+
+    this.terminal.on('key', (name, matches, data) => {
+      if(name === 'CTRL_C') this.terminate();
+      else if(name === 'ESCAPE') {
         if(this.activeView === 'all chats') {
           this.eventEmitter.emit('EscapePressedInAllChats');
         } else if(this.activeView === 'platforms') {          
@@ -51,7 +61,7 @@ class App {
       const chat = client.chats.find(x => x.id === result.chat_id);
       this.selectedChat = chat;
 
-      await client.refreshMessages(chat)
+      await client.refreshMessages(chat, true);
       await client.showMessages(chat);
       let numberOfMessages = chat.messages.length;
 
@@ -59,9 +69,11 @@ class App {
         numberOfMessages = chat.messages.length;
         await client.refreshMessages(chat);
 
-        if(chat.messages.length > numberOfMessages)
-          await client.showMessages(chat);
-      }, 1000);
+        if(chat.messages.length > numberOfMessages) {
+          const newMessages = chat.messages.slice(numberOfMessages);
+          await client.showMessages(chat, newMessages);
+        }
+      }, 5000);
       
     });
 
@@ -80,7 +92,7 @@ class App {
 
     this.eventEmitter.on('EscapePressedInPlatforms', async () => {
       this.clear();
-      process.exit(0);
+      this.terminate();
     });
 
     this.selectPlatform();

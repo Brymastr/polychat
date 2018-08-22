@@ -6,7 +6,9 @@ const getCursorPosition = require('get-cursor-position');
 
 class BaseView {
 
-  constructor(padding = 2) {
+  constructor(terminal, eventEmitter) {
+    this.terminal = terminal;
+    this.eventEmitter = eventEmitter;
 
     // this.padding = padding;
 

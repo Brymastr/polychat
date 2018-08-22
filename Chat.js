@@ -13,6 +13,8 @@ class Chat {
     this.usersInChat = [];
 
     this.chatView = new ChatView();
+    this.chatView.clear();
+    
   }
 
   appendMessages(rawMessages) {
@@ -28,6 +30,8 @@ class Chat {
       message: 'same'
     }
     */
+
+
     for(const m of rawMessages) {
 
       const exists = this.messageIds.has(m.id);
@@ -39,10 +43,12 @@ class Chat {
         user_id: m.from_id,
         date: new Date(m.date * 1000),
         message: m.message.replace(/\n/g, ' '),
+        id: m.id,
       });
     }
 
-    this.messages.sort((a, b) => a.date >= b.date ? 1 : -1);
+    this.messages.sort((a, b) => a.id >= b.id ? 1 : -1);
+
   }
 
   setUsersInChat(rawUsers) {
@@ -58,8 +64,12 @@ class Chat {
     }
   }
 
-  showMessages() {
-    this.chatView.draw(this.title, this.usersInChat, this.messages);
+  showTitle() {
+    this.chatView.start(this.title);
+  }
+
+  showMessages(messages = this.messages) {
+    this.chatView.draw(this.usersInChat, messages);
   }
 }
 

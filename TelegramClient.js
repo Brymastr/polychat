@@ -2,7 +2,6 @@ const { MTProto } = require('telegram-mtproto');
 const { Storage } = require('mtproto-storage-fs');
 const Client = require('./Client');
 const Chat = require('./Chat');
-const ChatView = require('./ChatView');
 const shortid = require('shortid');
 const fs = require('fs');
 const readline = require('readline');
@@ -55,7 +54,7 @@ class TelegramClient extends Client {
       const peerType = x.peer.user_id ? 'user' : 'chat';
       // Get the raw 'peer' object from the getDialogs response
       const dialogPeer = dialogsResponse[`${peerType}s`].find(y => y.id === x.peer[`${peerType}_id`]);
-      const top_message = dialogsResponse.messages.find(y => y.id === x.top_message);
+      // const top_message = dialogsResponse.messages.find(y => y.id === x.top_message);
 
       const chat = new Chat(this.user, this.getTitle(dialogPeer), {
         type: peerType,
@@ -82,16 +81,16 @@ class TelegramClient extends Client {
     return title;
   }
 
-  async showMessages(chat) {
+  async showMessages(chat, newMessages) {
     // call showMessages on chat
-    chat.showMessages();
+    chat.showMessages(newMessages);
   }
 
-  async refreshMessages(chat) {
-    // TODO: Don't look for the right chat each time. Instead, return the full chat object to ChatSelected event
+  async refreshMessages(chat, getAll = false) {
     const { id, access_hash, type } = chat.to;
-    const chatHistory = await this.getHistory(id, access_hash, type);
-
+    const minId = chat.messages[chat.messages.length - 1].id;
+    const chatHistory = await this.getHistory(id, access_hash, type, getAll ? null : minId);
+    
     chat.appendMessages(chatHistory.messages);
     chat.setUsersInChat(chatHistory.users);
   }
@@ -220,37 +219,18 @@ class TelegramClient extends Client {
     });
   }
 
-  async getUsers() {
-    const response = await this.telegram('messages.getDialogs', {
-      limit: 50,
-    });
-
-    return response.users.map(x => {
-      const { id, access_hash, first_name, phone, username } = x;
-      return { id, access_hash, first_name, phone, username };
-    });
-  }
-
-  async getState() {
-    const result = await this.telegram('updates.getState', {});
-    // console.log(result)
-  }
-
-  async getMessages() {
-    const result = await this.telegram('updates.getMessages', {});
-    // console.log(result)
-  }
-
-  async getHistory(peerId, accessHash, type) {
+  async getHistory(peerId, access_hash, type, min_id) {
     const typeId = `${type}_id`;
     const peer = {
       _: `inputPeer${type.charAt(0).toUpperCase()}${type.substr(1)}`,
-      access_hash: accessHash,
+      access_hash,
     };
     peer[typeId] = peerId;
+    
     return this.telegram('messages.getHistory', {
       peer,
-      limit: 50
+      min_id,
+      limit: 50,
     });
   }
 
