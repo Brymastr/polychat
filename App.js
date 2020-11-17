@@ -1,4 +1,3 @@
-const readline = require('readline');
 const PlatformsView = require('./PlatformsView');
 const TelegramClient = require('./TelegramClient');
 const { EventEmitter } = require('events');
@@ -26,7 +25,7 @@ class App {
       this.terminal.processExit(0);
     }
 
-    this.terminal.on('key', (name, matches, data) => {
+    this.terminal.on('key', name => {
       if(name === 'CTRL_C') this.terminate();
       else if(name === 'ESCAPE') {
         if(this.activeView === 'all chats') {
@@ -103,7 +102,6 @@ class App {
     this.eventEmitter.on('MessageSubmitted', async text => {
       const to = this.selectedChat.to;
       const result = await this.selectedClient.sendMessage(text, to.id, to.access_hash, to.type);
-      // console.log(result.updates)
       const messageResult = result.updates[1].message;
 
       const message = {
@@ -113,8 +111,8 @@ class App {
         id: messageResult.id,
       };
 
-      // this.selectedChat.appendMessages([ message ]);
-      // this.selectedClient.showMessages(this.selectedChat, [ message ]);
+      this.selectedChat.appendMessages([ message ]);
+      this.selectedClient.showMessages(this.selectedChat, [ message ]);
     });
 
     this.selectPlatform();

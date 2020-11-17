@@ -13,33 +13,50 @@ class ChatView extends BaseView {
   }
 
   start(title) {
-    // this.rl = readline.createInterface({
-    //   input: process.stdin,
-    //   output: process.stdout,
-    // });
-
     this.write(title + '\n\n');
   }
 
   draw(users, messages) {
-    const content = this.draftContent(users, messages);
+    // const height = this.terminal.height;
+    const width = this.terminal.width;
+
     this.terminal.up(2);
     this.terminal('\n');
     this.terminal.eraseDisplayBelow();
-    this.terminal(content.join('\n\n\n'));
+
+    messages.forEach(x => {
+      const user = users.find(y => y.id === x.user_id);
+      const heading = this.draftHeading(user, x.date);
+      const body = this.draftBody(x);
+
+      if(user.id === this.user.id) {
+        this.terminal.wrapColumn({ x: width - heading.length + 28, width: heading.length });
+        this.terminal.wrap(heading);
+        this.terminal('\n');
+        if(body.length < width * 0.75) {
+          this.terminal.wrapColumn({ x: width * 0.25, width: width * 0.75 });
+          this.terminal.wrap(body.padStart(width * 0.75, ' '));
+        }
+      } else {
+        this.terminal.wrapColumn({ x: 0, width: width * 0.75 });
+        this.terminal.wrap(heading);
+        this.terminal('\n');
+        this.terminal.wrapColumn({ x: 0, width: width * 0.75 });
+        this.terminal.wrap(body);
+      }
+      this.terminal('\n\n\n');
+      
+    });
+
     this.terminal('\n\n\n');
   }
 
-  draftContent(users, messages) {
-    /**
-     * Mark Niehe    August 17th, 2018
-     * @Brycen is going to bring them past your office in a bit, @TheDiesel
-     */
-    return messages.map(x => {
-      const user = users.find(y => y.id === x.user_id);
+  draftHeading(user, date) {
+    return `${this.color(user.name, 'bold')}    ${this.color(date.toLocaleString('en-CA'), 'italic', 'dim')}`;
+  }
 
-      return `${this.color(user.name, 'bold')}    ${this.color(x.date.toLocaleString(), 'italic', 'dim')}\n${x.message}`;
-    });
+  draftBody(message) {
+    return message.message;
   }
   
   drawInput() {
